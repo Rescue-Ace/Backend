@@ -1,0 +1,23 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rescue-Ace/Backend.git"
+  },
+  "author": "Rescue-Ace",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rescue-Ace/Backend/issues"
+  },
+  "homepage": "https://github.com/Rescue-Ace/Backend#readme",
+  "description": "",
+  "dependencies": {
+    "moment": "^2.30.1"
+  }
+}
