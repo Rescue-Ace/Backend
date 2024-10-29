@@ -27,10 +27,11 @@
     "hapi": "^18.1.0",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",
+    "ngrok": "^5.0.0-beta.2",
     "prisma": "^5.21.1",
     "socket.io": "^4.8.0"
   },
   "prisma": {
-  "schema": "src/config/schema.prisma"
-}
+    "schema": "src/config/schema.prisma"
+  }
 }
