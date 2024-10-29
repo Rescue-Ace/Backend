@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node src/server/server.js"
   },
   "repository": {
     "type": "git",
@@ -18,6 +18,20 @@
   "homepage": "https://github.com/Rescue-Ace/Backend#readme",
   "description": "",
   "dependencies": {
-    "moment": "^2.30.1"
+    "@hapi/cookie": "^12.0.1",
+    "@hapi/hapi": "^21.3.10",
+    "@prisma/client": "^5.21.1",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.5",
+    "firebase-admin": "^12.6.0",
+    "hapi": "^18.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "ngrok": "^5.0.0-beta.2",
+    "prisma": "^5.21.1",
+    "socket.io": "^4.8.0"
+  },
+  "prisma": {
+    "schema": "src/config/schema.prisma"
   }
 }
