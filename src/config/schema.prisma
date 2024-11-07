@@ -63,7 +63,8 @@ model Damkar {
   email         String
   password      String
   id_pos_damkar Int
-  status_aktif  String   @db.VarChar(1)
+  aktif         Boolean   @default(false)
+  role          String    @db.VarChar(12)
   token_user    String?
   Pos_damkar    Pos_damkar @relation(fields: [id_pos_damkar], references: [id_pos_damkar])
 }
@@ -75,8 +76,9 @@ model Polisi {
   email         String
   password      String
   id_polsek     Int
-  status_aktif  String   @db.VarChar(1)
-  tag           String   @db.VarChar(1)
+  aktif         Boolean  @default(false)
+  komandan      Boolean  @default(false)
+  role          String    @db.VarChar(12)
   token_user    String?
   Polsek        Polsek   @relation(fields: [id_polsek], references: [id_polsek])
 }
