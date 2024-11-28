@@ -1,6 +1,29 @@
 const prisma = require('../config/prisma');
+const { sendNotificationToFCM } = require('../service/fcm');
 
 const utusPolisi = async (request, h) => {
+  const { id_polisi, longitude, latitude} = request.payload;
+  
+  try {
+    const user = await prisma.Polisi.findUnique({
+      where: { id_polisi : parseInt(id_polisi) },
+    });
+
+    if (!user) {
+      return h.response({ message: 'Polisi not found' }).code(404);
+    }
+
+    sendNotificationToFCM(
+      user.token_user, 
+      'Titik penetralan', 
+      'ADA KEBAKARAN', 
+      JSON.stringify({"utus":{"longitude": longitude, "latitude": latitude}}));
+
+    return h.response(user).code(200);
+  } catch (error) {
+    console.error(error);
+    return h.response({ message: 'Error fetching user' }).code(500);
+  }
 
 };
 

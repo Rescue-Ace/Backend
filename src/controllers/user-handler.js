@@ -110,7 +110,7 @@ const loginUser = async (request, h) => {
       email : user_damkar.email,
       id_pos_damkar : user_damkar.id_pos_damkar,
       role : user_damkar.role,
-      cabang_damkar : pos_damkar.alamat
+      cabang_damkar : pos_damkar.nama
      }).code(200);
   }
 
@@ -142,12 +142,239 @@ const loginUser = async (request, h) => {
       id_polsek : user_polisi.id_polsek,
       komandan : user_polisi.komandan,
       role : user_polisi.role,
-      cabang_polsek : polsek.alamat
+      cabang_polsek : polsek.nama
     }).code(200);
   }
 
   if (!user_damkar && !user_polisi) {
     return h.response({ message: 'Invalid username or password' }).code(401);
+  }
+};
+
+const passwordDamkar = async (request, h) => {
+  const { id } = request.params;
+  const { old_password, new_password, confirm_password } = request.payload;
+
+  try {
+    const user = await prisma.Damkar.findUnique({
+      where: { id_damkar : parseInt(id) },
+    });
+
+    if (!user) {
+      return h.response({ message: 'User not found' }).code(401);
+    }
+
+    const isValid = await bcrypt.compare(old_password, user.password);
+
+    if (!isValid) {
+      return h.response({ message: 'Invalid password' }).code(401);
+    }
+
+    if ( new_password != confirm_password){
+      return h.response({ message: 'Konfirmasi password tidak sama dengan password baru' }).code(401);
+    }
+
+    const hashedNew_password = await bcrypt.hash(new_password, 10);
+
+    const updateUser = await prisma.Damkar.update({
+      where: { id_damkar : parseInt(id)},
+      data: {
+        password : hashedNew_password,
+      }
+    })
+
+    return h.response({ 
+      message: 'Password berhasil diganti', updateUser
+    }).code(200);
+
+  } catch (error){
+    console.error(error);
+    return h.response({ message: 'Error fetching user' }).code(500);
+  }
+};
+
+const passwordPolisi = async (request, h) => {
+  const { id } = request.params;
+  const { old_password, new_password, confirm_password } = request.payload;
+
+  try {
+    const user = await prisma.Polisi.findUnique({
+      where: { id_polisi : parseInt(id) },
+    });
+
+    if (!user) {
+      return h.response({ message: 'User not found' }).code(401);
+    }
+
+    const isValid = await bcrypt.compare(old_password, user.password);
+
+    if (!isValid) {
+      return h.response({ message: 'Invalid password' }).code(401);
+    }
+
+    if ( new_password != confirm_password){
+      return h.response({ message: 'Konfirmasi password tidak sama dengan password baru' }).code(401);
+    }
+
+    const hashedNew_password = await bcrypt.hash(new_password, 10);
+
+    const updateUser = await prisma.Polisi.update({
+      where: { id_polisi : parseInt(id)},
+      data: {
+        password : hashedNew_password,
+      }
+    })
+
+    return h.response({ 
+      message: 'Password berhasil diganti', updateUser
+    }).code(200);
+
+  } catch (error){
+    console.error(error);
+    return h.response({ message: 'Error fetching user' }).code(500);
+  }
+};
+
+const registerAdmin = async (request, h) => {
+  const { nama, telp, pass_key, email, password } = request.payload;
+  
+  const key4Admin = require('../../credentials/admin-pass-key.json')
+
+  if(pass_key != key4Admin.key){
+    return h.response({ message: 'Pass key tidak sesuai' }).code(400);
+  }
+
+  const existingUser = await prisma.Admin.findFirst({
+    where: {
+      email,
+    },
+  });
+
+  if (existingUser) {
+    return h.response({ message: 'Email sudah digunakan' }).code(400);
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await prisma.Admin.create({
+    data: {
+      nama,
+      telp,
+      email,
+      password: hashedPassword,
+    }
+  });
+
+  return h.response({ message: 'Admin registered successfully' }).code(201);
+};
+
+const loginAdmin = async (request, h) => {
+  const { email, password } = request.payload;
+
+  const user_admin = await prisma.Admin.findFirst({
+    where: { email },
+  });
+
+  if (!user_admin) {
+    return h.response({ message: 'Invalid username or password' }).code(401);
+  }
+
+  const isValid = await bcrypt.compare(password, user_admin.password);
+
+  if (!isValid) {
+    return h.response({ message: 'Invalid username or password' }).code(401);
+  }
+
+  const token = jwt.sign({ userId: user_admin.id_admin }, 'your_jwt_secret', {
+    expiresIn: '30d',
+  });
+
+  return h.response({ 
+    message: 'Admin berhasil login', 
+    token: token, 
+    nama: user_admin.nama,
+    telp: user_admin.telp,
+    email: user_admin.email
+    }).code(200);
+};
+
+const passwordAdmin = async (request, h) => {
+  const { id } = request.params;
+  const { old_password, new_password, confirm_password } = request.payload;
+
+  try {
+    const user_admin = await prisma.Admin.findUnique({
+      where: { id_admin : parseInt(id) },
+    });
+
+    if (!user_admin) {
+      return h.response({ message: 'User not found' }).code(401);
+    }
+
+    const isValid = await bcrypt.compare(old_password, user_admin.password);
+
+    if (!isValid) {
+      return h.response({ message: 'Invalid password' }).code(401);
+    }
+
+    if ( new_password != confirm_password){
+      return h.response({ message: 'Konfirmasi password tidak sama dengan password baru' }).code(401);
+    }
+
+    const hashedNew_password = await bcrypt.hash(new_password, 10);
+
+    const updateUser = await prisma.Admin.update({
+      where: { id_admin : parseInt(id)},
+      data: {
+        password : hashedNew_password,
+      }
+    })
+
+    return h.response({ 
+      message: 'Password berhasil diganti', updateUser
+    }).code(200);
+
+  } catch (error){
+    console.error(error);
+    return h.response({ message: 'Error fetching user' }).code(500);
+  }
+};
+
+const logoutUser = async (request, h) => {
+  const { role, id } = request.payload;
+  try{
+    if (role == "Anggota" || role == "Komandan" || role == "Polisi") {
+      const user_polisi = await prisma.Polisi.findUnique({
+        where: { id_polisi: parseInt(id) },
+      });
+
+      const deleteToken = await prisma.Polisi.update({
+        where: { id_polisi: parseInt(id) },
+        data: { token_user: null},
+      })
+
+      return h.response({ message: 'User berhasil logout' }).code(200);
+    }
+
+    else if (role == "Damkar") {
+      const user_damkar = await prisma.Damkar.findUnique({
+        where: { id_damkar: parseInt(id) },
+      });
+
+      const deleteToken = await prisma.Damkar.update({
+        where: { id_damkar: parseInt(id) },
+        data: { token_user: null},
+      })
+
+      return h.response({ message: 'User berhasil logout' }).code(200);
+    }
+
+    else {
+      h.response({ message: "Role tidak ditemukan"}).code(401);
+    }
+  } catch (error) {
+    console.error("User tidak berhasil logout ", error);
+    return h.response({ message: "User tidak berhasil logout "}).code(401);
   }
 };
 
@@ -234,6 +461,34 @@ const getPolisiById = async (request, h) => {
   }
 };
 
+const getAnggotaByPolsek = async (request, h) => {
+  const { id } = request.params;
+
+  try {
+    const polsek = await prisma.Polsek.findUnique({
+      where: { id_polsek : parseInt(id) },
+    });
+
+    if (!polsek) {
+      return h.response({ message: 'Polsek not found' }).code(404);
+    }
+
+    const anggotas = await prisma.polisi.findMany({
+      where: {
+        AND: [
+          {id_polsek: parseInt(id)},
+          {komandan: false}
+        ]
+      }
+    })
+
+    return h.response(anggotas).code(200);
+  } catch (error) {
+    console.error(error);
+    return h.response({ message: 'Error fetching user' }).code(500);
+  }
+};
+
 const putTokenDamkar = async (request, h) => {
   const { id_damkar, token_user } = request.payload;
 
@@ -314,7 +569,7 @@ const updateDamkar = async (request, h) => {
 
 const updatePolisi = async (request, h) => {
   const { id } = request.params;
-  const { nama, telp, id_polsek, email, komandan } = request.payload;
+  const { nama, telp, id_polsek, email } = request.payload;
 
   try{
     const user =  await prisma.Polisi.findUnique({
@@ -332,11 +587,39 @@ const updatePolisi = async (request, h) => {
         telp,
         id_polsek,
         email,
-        komandan
       }
     });
 
     return h.response({ updateUser, message: 'Data Polisi berhasil di-update' }).code(200);
+  } catch (error) {
+    console.error(error);
+    return h.response({ message: 'Error fetching user' }).code(500);
+  }
+}
+
+const updateAdmin = async (request, h) => {
+  const { id } = request.params;
+  const { nama, telp, email } = request.payload;
+
+  try{
+    const user =  await prisma.Admin.findUnique({
+      where: { id_admin : parseInt(id) },
+    });
+
+    if (!user) {
+      return h.response({ message: 'Admin tidak ditemukan' }).code(401);
+    }
+
+    const updateUser = await prisma.Admin.update({
+      where: { id_admin : parseInt(id)},
+      data: {
+        nama,
+        telp,
+        email
+      }
+    });
+
+    return h.response({ updateUser, message: 'Data Admin berhasil di-update' }).code(200);
   } catch (error) {
     console.error(error);
     return h.response({ message: 'Error fetching user' }).code(500);
@@ -393,14 +676,22 @@ module.exports = {
   registerDamkar, 
   registerPolisi, 
   loginUser,
+  passwordDamkar,
+  passwordPolisi,
+  registerAdmin,
+  loginAdmin,
+  passwordAdmin,
+  logoutUser,
   getAllDamkar,
   getAllPolisi,
+  getAnggotaByPolsek,
   getDamkarById,
   getPolisiById,
   putTokenDamkar,
   putTokenPolisi,
   updateDamkar,
   updatePolisi,
+  updateAdmin,
   deleteDamkar,
   deletePolisi
 };
