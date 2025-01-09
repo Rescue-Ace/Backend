@@ -1,6 +1,44 @@
 const prisma = require('../config/prisma');
+const { sendNotificationToFCM } = require('../service/fcm');
 
 const utusPolisi = async (request, h) => {
+  const { id_polisi, id_kebakaran, longitude, latitude} = request.payload;
+  
+  try {
+    const user = await prisma.Polisi.findUnique({
+      where: { id_polisi : parseInt(id_polisi) },
+    });
+
+    const kebakaran = await prisma.kebakaran.findUnique({
+      where: { id_kebakaran : parseInt(id_kebakaran) },
+    })
+
+    if (!user) {
+      return h.response({ message: 'Polisi not found' }).code(404);
+    }
+
+    if (!kebakaran) {
+      return h.response({ message: 'Kebakaran not found' }).code(404);
+    }
+
+    const updateUser = await prisma.polisi.update({
+      where: { id_polisi : parseInt(id_polisi) },
+      data: {
+        titik_penetralan : JSON.stringify({"longitude": longitude, "latitude": latitude}),
+      }
+    })
+
+    sendNotificationToFCM(
+      user.token_user, 
+      'Titik penetralan', 
+      'ADA KEBAKARAN', 
+      JSON.stringify({"rute": JSON.parse(kebakaran.rute),"utus":{"longitude": longitude, "latitude": latitude}}));
+
+    return h.response(updateUser).code(200);
+  } catch (error) {
+    console.error(error);
+    return h.response({ message: 'Error fetching user' }).code(500);
+  }
 
 };
 

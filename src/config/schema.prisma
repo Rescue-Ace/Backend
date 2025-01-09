@@ -13,7 +13,9 @@ model Pos_damkar {
   telp          String   @db.VarChar(13)
   email         String
   link_maps     String
-  koordinat     String
+  latitude      Float
+  longitude     Float
+  nama          String
   Damkar        Damkar[]
   Kebakaran     Kebakaran[]
 }
@@ -24,24 +26,29 @@ model Polsek {
   telp          String   @db.VarChar(13)
   email         String
   link_maps     String
-  koordinat     String
+  latitude      Float
+  longitude     Float
+  nama          String
+  sektor        String
   Polisi        Polisi[]
   Pos_polisi    Pos_polisi[]
+  Kebakaran     Kebakaran[]
 }
 
 model PIC {
   id_pic        Int      @id @default(autoincrement())
   nama          String
   telp          String   @db.VarChar(13)
-  email         String
-  Alat          Alat[]
+  Alat          Alat[]   @relation("pic1")
+  Alat2         Alat[]   @relation("pic2")
 }
 
 model Pos_polisi {
   id_pos_polisi Int      @id @default(autoincrement())
   alamat        String
   link_maps     String   @db.VarChar(13)
-  koordinat     String
+  latitude      Float
+  longitude     Float
   id_polsek     Int
   Polsek        Polsek   @relation(fields: [id_polsek], references: [id_polsek])
 }
@@ -50,9 +57,12 @@ model Alat {
   id_alat       Int      @id @default(autoincrement())
   alamat        String
   link_maps     String   @db.VarChar(13)
-  koordinat     String
+  latitude      Float
+  longitude     Float
   id_pic        Int
-  PIC           PIC      @relation(fields: [id_pic], references: [id_pic])
+  id_pic2       Int?
+  PIC           PIC      @relation("pic1",fields: [id_pic], references: [id_pic])
+  PIC2          PIC?     @relation("pic2",fields: [id_pic2], references: [id_pic])
   Kebakaran     Kebakaran[]
 }
 
@@ -61,7 +71,7 @@ model Damkar {
   nama          String
   telp          String   @db.VarChar(13)
   email         String
-  password      String
+  password      String  
   id_pos_damkar Int
   aktif         Boolean   @default(false)
   role          String    @db.VarChar(12)
@@ -78,7 +88,8 @@ model Polisi {
   id_polsek     Int
   aktif         Boolean  @default(false)
   komandan      Boolean  @default(false)
-  role          String    @db.VarChar(12)
+  role          String   @db.VarChar(12)
+  titik_penetralan  String? 
   token_user    String?
   Polsek        Polsek   @relation(fields: [id_polsek], references: [id_polsek])
 }
@@ -87,9 +98,20 @@ model Kebakaran {
   id_kebakaran  Int      @id @default(autoincrement())
   waktu_pelaporan DateTime
   status_kebakaran String @db.VarChar(13)
-  waktu_tiba    DateTime
   id_alat       Int
   id_pos_damkar Int
-  Alat          Alat      @relation(fields: [id_alat], references: [id_alat])
+  id_polsek     Int?
+  rute          String?  @db.VarChar(65535)
+  simpang       String?  @db.VarChar(65535)
+  Polsek        Polsek?  @relation(fields: [id_polsek], references: [id_polsek])
+  Alat          Alat     @relation(fields: [id_alat], references: [id_alat])
   Pos_damkar    Pos_damkar @relation(fields: [id_pos_damkar], references: [id_pos_damkar])
+}
+
+model Admin {
+  id_admin      Int      @id @default(autoincrement())
+  nama          String
+  telp          String   @db.VarChar(13)
+  email         String
+  password      String
 }

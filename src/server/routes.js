@@ -11,7 +11,15 @@ const {
     updateDamkar,
     updatePolisi,
     deleteDamkar,
-    deletePolisi
+    deletePolisi,
+    getAnggotaByPolsek,
+    logoutUser,
+    registerAdmin,
+    loginAdmin,
+    passwordAdmin,
+    passwordDamkar,
+    passwordPolisi,
+    updateAdmin
 } = require("../controllers/user-handler");
 
 const {
@@ -24,7 +32,8 @@ const {
     getAllPosPolisi,
     getPosPolisiById,
     getAllPolsek,
-    getPolsekById 
+    getPolsekById, 
+    utusPolisi
 } = require("../controllers/polisi-handler");
 
 const { 
@@ -32,10 +41,14 @@ const {
     getPicById 
 } = require("../controllers/pic-handler");
 
-const { buttonPressed } = require("../controllers/button-handler");
+const { buttonPressed, getAllAlat, getAlatById, addAlat } = require("../controllers/button-handler");
 const { 
     getAllKebakaran, 
-    getKebakaranById 
+    getKebakaranById, 
+    updateKebakaran,
+    ruteKebakaran,
+    simpangPenetralan,
+    titikPenetralan
 } = require("../controllers/kebakaran-handler");
 
 const routes = [
@@ -46,19 +59,44 @@ const routes = [
     },
     {
         method: 'POST',
+        path: '/user/registerPolisi',
+        handler: registerPolisi
+    },
+    {
+        method: 'POST',
         path: '/user/loginUser',
         handler: loginUser
     },
     {
-        method: 'POST',
-        path: '/user/registerPolisi',
-        handler: registerPolisi
+        method: 'PUT',
+        path: '/Damkar/updatePassword/{id}',
+        handler: passwordDamkar
     },
-/*    {
+    {
+        method: 'PUT',
+        path: '/Polisi/updatePassword/{id}',
+        handler: passwordPolisi
+    },
+    {
         method: 'POST',
-        path: '/user/loginPolisi',
-        handler: loginPolisi
-    },*/
+        path: '/admin/registerAdmin',
+        handler: registerAdmin
+    },
+    {
+        method: 'POST',
+        path: '/admin/loginAdmin',
+        handler: loginAdmin
+    },
+    {
+        method: 'PUT',
+        path: '/admin/updatePassword/{id}',
+        handler: passwordAdmin
+    },
+    {
+        method: 'POST',
+        path: '/user/logoutUser',
+        handler: logoutUser
+    },
     {
         method: 'GET',
         path: '/user/Damkar',
@@ -78,6 +116,11 @@ const routes = [
         method: 'GET',
         path: '/user/Polisi/{id}',
         handler: getPolisiById
+    },
+    {
+        method: 'GET',
+        path: '/user/Anggota/{id}',
+        handler: getAnggotaByPolsek
     },
     {
         method: 'PUT',
@@ -107,7 +150,7 @@ const routes = [
     {
         method: 'POST',
         path: '/Polisi/utusPolisi',
-        handler: reqBantuan
+        handler: utusPolisi
     },
     {
         method: 'GET',
@@ -151,6 +194,27 @@ const routes = [
     },
     {
         method: 'GET',
+        path: '/Kebakaran/rute/{id}',
+        handler: ruteKebakaran
+    },
+    {
+        method: 'GET',
+        path: '/Kebakaran/simpang/{id}',
+        handler: simpangPenetralan
+    },
+    {
+        method: 'POST',
+        path: '/Kebakaran/titik/{id}',
+        handler: titikPenetralan
+    },
+
+    {
+        method: 'PUT',
+        path: '/Kebakaran/{id}',
+        handler: updateKebakaran
+    },
+    {
+        method: 'GET',
         path: '/button/{id}',
         handler: buttonPressed
     },
@@ -163,6 +227,12 @@ const routes = [
         method: 'PUT',
         path: '/user/Polisi/{id}',
         handler: updatePolisi
+    },
+    
+    {
+        method: 'PUT',
+        path: '/admin/{id}',
+        handler: updateAdmin
     },
     {
         method: 'DELETE',
@@ -183,7 +253,22 @@ const routes = [
         method: 'PUT',
         path: '/user/Polisi/tokenFCM',
         handler: putTokenPolisi
-    }
+    },
+    {
+        method: 'GET',
+        path: '/Alat',
+        handler: getAllAlat
+    },
+    {
+        method: 'GET',
+        path: '/Alat/{id}',
+        handler: getAlatById
+    },
+    {
+        method: 'POST',
+        path: '/Alat',
+        handler: addAlat
+    },
 ];
 
 module.exports = routes;
