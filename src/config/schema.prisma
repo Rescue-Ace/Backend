@@ -88,7 +88,7 @@ model Polisi {
   id_polsek     Int
   aktif         Boolean  @default(false)
   komandan      Boolean  @default(false)
-  role          String    @db.VarChar(12)
+  role          String   @db.VarChar(12)
   titik_penetralan  String? 
   token_user    String?
   Polsek        Polsek   @relation(fields: [id_polsek], references: [id_polsek])
@@ -101,9 +101,10 @@ model Kebakaran {
   id_alat       Int
   id_pos_damkar Int
   id_polsek     Int?
-  rute          String?
-  Polsek        Polsek?    @relation(fields: [id_polsek], references: [id_polsek])
-  Alat          Alat      @relation(fields: [id_alat], references: [id_alat])
+  rute          String?  @db.VarChar(65535)
+  simpang       String?  @db.VarChar(65535)
+  Polsek        Polsek?  @relation(fields: [id_polsek], references: [id_polsek])
+  Alat          Alat     @relation(fields: [id_alat], references: [id_alat])
   Pos_damkar    Pos_damkar @relation(fields: [id_pos_damkar], references: [id_pos_damkar])
 }
 

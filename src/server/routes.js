@@ -45,7 +45,10 @@ const { buttonPressed, getAllAlat, getAlatById, addAlat } = require("../controll
 const { 
     getAllKebakaran, 
     getKebakaranById, 
-    updateKebakaran
+    updateKebakaran,
+    ruteKebakaran,
+    simpangPenetralan,
+    titikPenetralan
 } = require("../controllers/kebakaran-handler");
 
 const routes = [
@@ -189,6 +192,22 @@ const routes = [
         path: '/Kebakaran/{id}',
         handler: getKebakaranById
     },
+    {
+        method: 'GET',
+        path: '/Kebakaran/rute/{id}',
+        handler: ruteKebakaran
+    },
+    {
+        method: 'GET',
+        path: '/Kebakaran/simpang/{id}',
+        handler: simpangPenetralan
+    },
+    {
+        method: 'POST',
+        path: '/Kebakaran/titik/{id}',
+        handler: titikPenetralan
+    },
+
     {
         method: 'PUT',
         path: '/Kebakaran/{id}',

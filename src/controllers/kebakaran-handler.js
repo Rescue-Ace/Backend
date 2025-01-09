@@ -77,6 +77,13 @@ const updateKebakaran = async (request, h) => {
       }
     })
 
+    const updatePolisi = await prisma.polisi.updateMany({
+      where: { id_polsek : parseInt(kebakaran.id_polsek)},
+      data: {
+        titik_penetralan : null
+      }
+    })
+
     const payload = {
       "status": status_kebakaran,
       "location": {
@@ -105,7 +112,7 @@ const ruteKebakaran = async (request, h) => {
   const { id } = request.params;
 
   try {
-    const kebakaran = prisma.kebakaran.findUnique({
+    const kebakaran = await prisma.kebakaran.findUnique({
       where: {
         id_kebakaran : parseInt(id),
       }
@@ -121,17 +128,13 @@ const simpangPenetralan = async (request, h) => {
   const { id } = request.params;
 
   try {
-    const kebakaran = prisma.kebakaran.findUnique({
+    const kebakaran = await prisma.kebakaran.findUnique({
       where: {
         id_kebakaran : parseInt(id),
       }
     })
 
-    const rute = JSON.parse(kebakaran.rute);
-
-    const simpang = await persimpangan(rute)
-
-    return h.response({ message: "Rute kebakaran", rute: JSON.parse(kebakaran.rute), simpang: simpang }).code(200);
+    return h.response({ message: "Rute kebakaran", rute: JSON.parse(kebakaran.rute), simpang: JSON.parse(kebakaran.simpang) }).code(200);
   } catch (error){
     console.error(error);
     return h.response({ message: 'Error fetching data' }).code(500);
@@ -140,22 +143,22 @@ const simpangPenetralan = async (request, h) => {
 
 const titikPenetralan = async (request, h) => {
   const { id } = request.params;
-  const { id_kebakaran } = request.payload;
+  const { id_anggota } = request.payload;
 
   try {    
-    const anggota = prisma.polisi.findUnique({
+    const anggota = await prisma.polisi.findUnique({
       where: {
-        id_polisi : parseInt(id),
+        id_polisi : parseInt(id_anggota),
       }
     })
 
-    const kebakaran = prisma.kebakaran.findUnique({
+    const kebakaran = await prisma.kebakaran.findUnique({
       where: {
-        id_kebakaran : parseInt(id_kebakaran),
+        id_kebakaran : parseInt(id),
       }
     })
 
-    return h.response({ message: "Rute kebakaran", rute: JSON.parse(kebakaran.rute), titik_penetralan: prisma.polisi }).code(200);
+    return h.response({ message: "Rute kebakaran", rute: JSON.parse(kebakaran.rute), titik_penetralan: JSON.parse(anggota.titik_penetralan) }).code(200);
   } catch (error){
     console.error(error);
     return h.response({ message: 'Error fetching data' }).code(500);
@@ -165,5 +168,8 @@ const titikPenetralan = async (request, h) => {
 module.exports = {
     getAllKebakaran,
     getKebakaranById,
-    updateKebakaran
+    updateKebakaran,
+    ruteKebakaran,
+    titikPenetralan,
+    simpangPenetralan,
 };

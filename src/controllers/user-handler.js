@@ -292,6 +292,7 @@ const loginAdmin = async (request, h) => {
   return h.response({ 
     message: 'Admin berhasil login', 
     token: token, 
+    id_admin: user_admin.id_admin,
     nama: user_admin.nama,
     telp: user_admin.telp,
     email: user_admin.email

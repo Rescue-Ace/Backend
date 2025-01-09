@@ -30,15 +30,7 @@ const persimpangan = async (rute) => {
 };
 
 const polsekTerdekat = async (longitude, latitude) => {
-    /*
-    const query = `
-      SELECT id_polsek, longitude, latitude,
-      (6371 * ACOS(COS(RADIANS(${latitude})) * COS(RADIANS(latitude)) * COS(RADIANS(longitude) - RADIANS(${longitude})) + SIN(RADIANS(${latitude})) * SIN(RADIANS(latitude)))) AS distance
-      FROM polsek
-      ORDER BY distance
-      LIMIT 1;
-    `;*/
-  
+
     const polsek_terdekat = await prisma.$queryRaw`
       SELECT id_polsek, longitude, latitude,
       (6371 * ACOS(COS(RADIANS(${latitude})) * COS(RADIANS(latitude)) * COS(RADIANS(longitude) - RADIANS(${longitude})) + SIN(RADIANS(${latitude})) * SIN(RADIANS(latitude)))) AS distance

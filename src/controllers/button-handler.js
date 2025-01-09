@@ -118,7 +118,9 @@ const getAllAlat = async (request, h) => {
       longitude: alat.longitude,
       name: alat.name,
       nama_pic1: alat.PIC?.nama || null,
+      telp_pic1: alat.PIC?.telp || null,
       nama_pic2: alat.PIC2?.nama || null,
+      telp_pic2: alat.PIC2?.telp || null,
     }));
     return h.response(payload).code(200);
   } catch (error) {
@@ -206,7 +208,7 @@ const addAlat = async (request, h) => {
   return h.response({ message: 'Alat berhasil ditambahkan', pic1, pic2, alat}).code(201);
 };
 
-const buttonPressed = async (request, h) => {
+const buttonPressednew = async (request, h) => {
   const { id } = request.params;
 
   try {
@@ -241,6 +243,7 @@ const buttonPressed = async (request, h) => {
     })
 
     const rute = await routeFinder(pos_damkar, alat.longitude, alat.latitude);
+    const simpang = await persimpangan(rute);
 
     const kebakaran = await prisma.Kebakaran.create({
       data: {
@@ -248,13 +251,12 @@ const buttonPressed = async (request, h) => {
         status_kebakaran: 'diproses',
         id_alat: alat.id_alat,
         id_pos_damkar: pos_damkar.id_pos_damkar,
-        rute: JSON.stringify(rute.routes[0]),
+        rute: JSON.stringify(rute.routes[0].geometry),
+        simpang: JSON.stringify(simpang),
         id_polsek: polsek.id_polsek
       }
     })
 
-    
-    const simpang = await persimpangan(rute);
 
     if (!simpang){
       const komandans = await prisma.polisi.findMany({
@@ -401,4 +403,196 @@ const buttonPressed = async (request, h) => {
   }
 };
 
+const buttonPressed = async (request, h) => {
+  const { id } = request.params;
+
+  try {
+    const alat = await prisma.alat.findUnique({
+      where: { id_alat : parseInt(id) },
+    });
+
+    if (!alat) {
+      return h.response({ message: 'Alat not found' }).code(404);
+    }
+
+    const pos_damkar = await damkarTerdekat( alat.longitude, alat.latitude);
+
+    if (!pos_damkar[0]) {
+      return h.response({ message: 'pos damkar not found' }).code(404);
+    }
+    console.log(pos_damkar[0].id_pos_damkar);
+    
+    const polsek = await polsekTerdekat(alat.longitude, alat.latitude);
+
+    if (!polsek[0]) {
+      return h.response({ message: 'polsek not found' }).code(404);
+    }
+    console.log(polsek[0].id_polsek);
+
+    const damkars = await prisma.damkar.findMany({
+      where: {
+        id_pos_damkar: pos_damkar[0].id_pos_damkar,
+      }
+    })
+
+    const rute = await routeFinder(pos_damkar[0], alat.longitude, alat.latitude);
+    const simpang = await persimpangan(rute);
+
+    const kebakaran = await prisma.Kebakaran.create({
+      data: {
+        waktu_pelaporan: new Date(),
+        status_kebakaran: 'diproses',
+        id_alat: alat.id_alat,
+        id_pos_damkar: pos_damkar[0].id_pos_damkar,
+        rute: JSON.stringify(rute.routes[0].geometry),
+        simpang: JSON.stringify(simpang),
+        id_polsek: polsek[0].id_polsek
+      }
+    })
+
+
+    if (!simpang){
+      const komandans = await prisma.polisi.findMany({
+        where: {
+          AND: [
+            {id_polsek: polsek[0].id_polsek},
+            {komandan: true}
+          ]
+        }
+      })
+
+      const anggotas = await prisma.polisi.findMany({
+        where: {
+          AND: [
+            {id_polsek: polsek[0].id_polsek},
+            {komandan: false}
+          ]
+        }
+      })
+
+      damkars.forEach(damkar =>{
+        if(damkar.token_user){
+        sendNotificationToFCM(
+          damkar.token_user, 
+          'Rute Kebakaran', 
+          'ADA KEBAKARAN', 
+          JSON.stringify({
+            kebakaran: {
+              id_kebakaran: kebakaran.id_kebakaran, 
+              lokasi: alat.alamat
+            }, 
+            rute: rute.routes[0].geometry}));
+        }
+      });
+      anggotas.forEach(anggota =>{
+        if(anggota.token_user){
+        sendNotificationToFCM(
+          anggota.token_user, 
+          'Rute Kebakaran', 
+          'ADA KEBAKARAN', 
+          JSON.stringify({
+            kebakaran: {
+              id_kebakaran: kebakaran.id_kebakaran, 
+              lokasi: alat.alamat
+            }, 
+            rute: rute.routes[0].geometry}));
+        }
+      });
+      komandans.forEach(komandan =>{
+        if(komandan.token_user){
+        sendNotificationToFCM(
+          komandan.token_user, 
+          'lokasi kebakaran', 
+          'ADA KEBAKARAN', 
+          JSON.stringify({
+            kebakaran: {
+              id_kebakaran: kebakaran.id_kebakaran, 
+              lokasi: alat.alamat
+            },
+            "lokasi alat":{
+              longitude: alat.longitude, 
+              latitude: alat.latitude
+            }, 
+            simpang: [], 
+            rute: rute.routes[0].geometry}));
+        }
+      });
+
+      return h.response(alat).code(200);
+    }
+
+    const komandans = await prisma.polisi.findMany({
+      where: {
+        AND: [
+          {id_polsek: polsek[0].id_polsek},
+          {komandan: true}
+        ]
+      }
+    })
+
+    const anggotas = await prisma.polisi.findMany({
+      where: {
+        AND: [
+          {id_polsek: polsek[0].id_polsek},
+          {komandan: false}
+        ]
+      }
+    })
+
+    damkars.forEach(damkar =>{
+      if(damkar.token_user){
+        sendNotificationToFCM(
+          damkar.token_user, 
+          'Rute Kebakaran', 
+          'ADA KEBAKARAN', 
+          JSON.stringify({
+            kebakaran: {
+              id_kebakaran: kebakaran.id_kebakaran, 
+              lokasi: alat.alamat
+            }, 
+            rute: rute.routes[0].geometry}));
+      }    
+    });
+
+    anggotas.forEach(anggota =>{
+      if(anggota.token_user){
+      sendNotificationToFCM(
+        anggota.token_user, 
+        'Rute Kebakaran', 
+        'ADA KEBAKARAN', 
+        JSON.stringify({
+          kebakaran: {id_kebakaran: kebakaran.id_kebakaran, 
+            lokasi: alat.alamat}, 
+            rute: rute.routes[0].geometry}));
+      }
+    });
+
+    komandans.forEach(komandan =>{
+      if(komandan.token_user){
+      sendNotificationToFCM(
+        komandan.token_user, 
+        'Lokasi kebakaran dan titik penetralan', 
+        'ADA KEBAKARAN', 
+        JSON.stringify({
+          kebakaran: {
+            id_kebakaran: kebakaran.id_kebakaran, 
+            lokasi: alat.alamat
+          }, 
+          "lokasi alat":{
+            longitude: alat.longitude, 
+            latitude: alat.latitude}, 
+            simpang: simpang, 
+            rute: rute.routes[0].geometry}));
+      }
+    });
+
+    console.log(JSON.stringify({kebakaran: {id_kebakaran: kebakaran.id_kebakaran, lokasi: alat.alamat}, rute: rute.routes[0].geometry}))
+    console.log(JSON.stringify({kebakaran: {id_kebakaran: kebakaran.id_kebakaran, lokasi: alat.alamat}, "lokasi alat":{longitude: alat.longitude, latitude: alat.latitude}, simpang: simpang, rute: rute.routes[0].geometry}))
+
+    return h.response(alat).code(200);
+  } catch (error) {
+    console.error(error);
+    return h.response({ message: 'Error fetching alat' }).code(500);
+  }
+};
 module.exports = { buttonPressed, getAlatById, getAllAlat, addAlat };
